@@ -18,11 +18,11 @@ plot_hextant_feature(
   scales = "fixed",
   min_cutoff = NULL,
   max_cutoff = NULL,
-  cell_min_cutoff = NULL,
-  cell_max_cutoff = NULL,
   title = NULL,
   xlab = NULL,
-  ylab = NULL
+  ylab = NULL,
+  cell_min_cutoff = NULL,
+  cell_max_cutoff = NULL
 )
 }
 \arguments{
@@ -74,6 +74,15 @@ Can be a numeric value (e.g., 3) or a quantile string (e.g., "q95" for
 If NULL (default), no maximum cutoff is applied. When split_by is used,
 cutoffs are calculated globally across all groups.}
 
+\item{title}{A string containing the title of the plot. If NULL, defaults
+to "Feature (action)".}
+
+\item{xlab}{A string containing the title of the x axis. If NULL (default),
+uses the proper dimension name from the reduction (e.g., "UMAP_1", "PC_1").}
+
+\item{ylab}{A string containing the title of the y axis. If NULL (default),
+uses the proper dimension name from the reduction (e.g., "UMAP_2", "PC_2").}
+
 \item{cell_min_cutoff}{Minimum cutoff applied to each cell's value
 \emph{before} cells are aggregated into bins. Can be a numeric value or a
 quantile string (e.g., "q1"), with quantiles computed over all cells.
@@ -86,15 +95,6 @@ applied.}
 binning; see cell_min_cutoff. Per-cell cutoffs are applied first, then
 the bins are aggregated, then min_cutoff/max_cutoff are applied to the
 per-bin values.}
-
-\item{title}{A string containing the title of the plot. If NULL, defaults
-to "Feature (action)".}
-
-\item{xlab}{A string containing the title of the x axis. If NULL (default),
-uses the proper dimension name from the reduction (e.g., "UMAP_1", "PC_1").}
-
-\item{ylab}{A string containing the title of the y axis. If NULL (default),
-uses the proper dimension name from the reduction (e.g., "UMAP_2", "PC_2").}
 }
 \value{
 A \code{\link{ggplot2}{ggplot}} object.

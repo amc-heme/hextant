@@ -11,6 +11,16 @@ skip_if_no_scuba <- function() {
     testthat::skip_if_not_installed("SeuratObject")
 }
 
+test_that("per-cell cutoffs follow existing positional plot arguments", {
+    expect_identical(
+        tail(names(formals(plot_hextant_feature)), 7),
+        c(
+            "min_cutoff", "max_cutoff", "title", "xlab", "ylab",
+            "cell_min_cutoff", "cell_max_cutoff"
+        )
+    )
+})
+
 # Load AML_Seurat from SCUBA, skipping if unavailable.
 load_aml_seurat <- function() {
     skip_if_no_scuba()

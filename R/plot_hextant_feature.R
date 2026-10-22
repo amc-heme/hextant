@@ -41,6 +41,12 @@
 #'    95th percentile). Values above this threshold will be capped at the cutoff.
 #'    If NULL (default), no maximum cutoff is applied. When split_by is used,
 #'    cutoffs are calculated globally across all groups.
+#' @param title A string containing the title of the plot. If NULL, defaults
+#'    to "Feature (action)".
+#' @param xlab A string containing the title of the x axis. If NULL (default),
+#'    uses the proper dimension name from the reduction (e.g., "UMAP_1", "PC_1").
+#' @param ylab A string containing the title of the y axis. If NULL (default),
+#'    uses the proper dimension name from the reduction (e.g., "UMAP_2", "PC_2").
 #' @param cell_min_cutoff Minimum cutoff applied to each cell's value
 #'    *before* cells are aggregated into bins. Can be a numeric value or a
 #'    quantile string (e.g., "q1"), with quantiles computed over all cells.
@@ -52,12 +58,6 @@
 #'    binning; see cell_min_cutoff. Per-cell cutoffs are applied first, then
 #'    the bins are aggregated, then min_cutoff/max_cutoff are applied to the
 #'    per-bin values.
-#' @param title A string containing the title of the plot. If NULL, defaults
-#'    to "Feature (action)".
-#' @param xlab A string containing the title of the x axis. If NULL (default),
-#'    uses the proper dimension name from the reduction (e.g., "UMAP_1", "PC_1").
-#' @param ylab A string containing the title of the y axis. If NULL (default),
-#'    uses the proper dimension name from the reduction (e.g., "UMAP_2", "PC_2").
 #'
 #' @return A \code{\link{ggplot2}{ggplot}} object.
 #'
@@ -123,11 +123,11 @@ plot_hextant_feature <- function(
     scales = "fixed",
     min_cutoff = NULL,
     max_cutoff = NULL,
-    cell_min_cutoff = NULL,
-    cell_max_cutoff = NULL,
     title = NULL,
     xlab = NULL,
-    ylab = NULL) {
+    ylab = NULL,
+    cell_min_cutoff = NULL,
+    cell_max_cutoff = NULL) {
     
     # Validate action parameter
     valid_actions <- c("mean", "median", "sum")
