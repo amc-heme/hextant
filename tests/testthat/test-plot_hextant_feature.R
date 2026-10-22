@@ -11,6 +11,16 @@ skip_if_no_scuba <- function() {
     testthat::skip_if_not_installed("SeuratObject")
 }
 
+test_that("per-cell cutoffs follow existing positional plot arguments", {
+    expect_identical(
+        tail(names(formals(plot_hextant_feature)), 7),
+        c(
+            "min_cutoff", "max_cutoff", "title", "xlab", "ylab",
+            "cell_min_cutoff", "cell_max_cutoff"
+        )
+    )
+})
+
 # Load AML_Seurat from SCUBA, skipping if unavailable.
 load_aml_seurat <- function() {
     skip_if_no_scuba()
@@ -288,4 +298,60 @@ test_that("collision: assay supplied + metadata-only name errors (strict)", {
         ),
         regexp = "not found in assay"
     )
+})
+
+# Per-cell cutoffs ------------------------------------------------------------
+
+test_that("per-cell cutoffs clamp values before binning", {
+    obj <- load_aml_seurat()
+
+    base <- plot_hextant_feature(
+        obj, feature = "ACTG1", action = "sum", nbins = 20,
+        dimension_reduction = "umap"
+    )
+    capped <- plot_hextant_feature(
+        obj, feature = "ACTG1", action = "sum", nbins = 20,
+        dimension_reduction = "umap", cell_max_cutoff = 0.5
+    )
+
+    # Same bins, smaller sums: no bin can exceed 0.5 per cell
+    expect_equal(nrow(capped$data), nrow(base$data))
+    expect_lte(max(capped$data$feature_value), max(base$data$feature_value))
+    expect_true(all(
+        capped$data$feature_value <= 0.5 * capped$data$number_of_cells + 1e-8
+    ))
+
+    # Quantile cutoffs are evaluated over the per-cell values
+    cells <- SCUBA::fetch_data(obj, vars = "rna_ACTG1")[, 1]
+    q90 <- unname(quantile(cells, 0.9))
+    q_capped <- plot_hextant_feature(
+        obj, feature = "ACTG1", action = "mean", nbins = 20,
+        dimension_reduction = "umap", cell_max_cutoff = "q90"
+    )
+    expect_lte(max(q_capped$data$feature_value), q90 + 1e-8)
+
+    # Decimal quantiles are accepted
+    expect_s3_class(
+        plot_hextant_feature(
+            obj, feature = "ACTG1", nbins = 20, dimension_reduction = "umap",
+            cell_min_cutoff = "q0.5", cell_max_cutoff = "q99.5"
+        ),
+        "ggplot"
+    )
+})
+
+test_that(".apply_cutoffs clamps, resolves quantiles and keeps NA", {
+    values <- c(-2, -1, 0, 1, 2, NA)
+
+    expect_equal(
+        hextant:::.apply_cutoffs(values, min_cutoff = -1, max_cutoff = 1),
+        c(-1, -1, 0, 1, 1, NA)
+    )
+    expect_equal(
+        hextant:::.apply_cutoffs(values, max_cutoff = "q50"),
+        c(-2, -1, 0, 0, 0, NA)
+    )
+    expect_equal(hextant:::.apply_cutoffs(values), values)
+    expect_error(hextant:::.apply_cutoffs(values, max_cutoff = "q101"), "between 0 and 100")
+    expect_error(hextant:::.apply_cutoffs(values, max_cutoff = "high"), "quantile string")
 })
