@@ -41,6 +41,17 @@
 #'    95th percentile). Values above this threshold will be capped at the cutoff.
 #'    If NULL (default), no maximum cutoff is applied. When split_by is used,
 #'    cutoffs are calculated globally across all groups.
+#' @param cell_min_cutoff Minimum cutoff applied to each cell's value
+#'    *before* cells are aggregated into bins. Can be a numeric value or a
+#'    quantile string (e.g., "q1"), with quantiles computed over all cells.
+#'    Unlike min_cutoff, which caps the aggregated per-bin values, this caps
+#'    the underlying data, so for example a "sum" bin can no longer be
+#'    dominated by a few extreme cells. If NULL (default), no cutoff is
+#'    applied.
+#' @param cell_max_cutoff Maximum cutoff applied to each cell's value before
+#'    binning; see cell_min_cutoff. Per-cell cutoffs are applied first, then
+#'    the bins are aggregated, then min_cutoff/max_cutoff are applied to the
+#'    per-bin values.
 #' @param title A string containing the title of the plot. If NULL, defaults
 #'    to "Feature (action)".
 #' @param xlab A string containing the title of the x axis. If NULL (default),
@@ -85,6 +96,10 @@
 #' # Cap maximum at fixed value of 3
 #' plot_hextant_feature(seurat_obj, feature = "CD8A", max_cutoff = 3)
 #'
+#' # Cap each cell at the 99th percentile before summing within bins
+#' plot_hextant_feature(seurat_obj, feature = "CD8A", action = "sum",
+#'                       cell_max_cutoff = "q99")
+#'
 #' # Apply both min and max cutoffs
 #' plot_hextant_feature(seurat_obj, feature = "CD8A", 
 #'                       min_cutoff = "q10", max_cutoff = "q90")
@@ -108,6 +123,8 @@ plot_hextant_feature <- function(
     scales = "fixed",
     min_cutoff = NULL,
     max_cutoff = NULL,
+    cell_min_cutoff = NULL,
+    cell_max_cutoff = NULL,
     title = NULL,
     xlab = NULL,
     ylab = NULL) {
@@ -267,6 +284,10 @@ plot_hextant_feature <- function(
     if (length(feature_values) == 0) {
         stop(sprintf("No expression values retrieved for feature '%s'. The feature may not be present in any cells.", feature))
     }
+    
+    # Apply per-cell cutoffs before binning. Quantiles are computed over all
+    # cells (globally, as for the per-bin cutoffs when split_by is used).
+    feature_values <- .apply_cutoffs(feature_values, cell_min_cutoff, cell_max_cutoff)
     
     # Create hexagonal bins
     out <- .hextant_bin(obj, nbins, dimension_reduction, use_dims)

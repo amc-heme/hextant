@@ -182,7 +182,7 @@
     
     # Apply minimum cutoff
     if (!is.null(min_cutoff)) {
-        if (is.character(min_cutoff) && grepl("^q[0-9]+$", min_cutoff)) {
+        if (is.character(min_cutoff) && grepl("^q[0-9]+(\\.[0-9]+)?$", min_cutoff)) {
             percentile <- as.numeric(sub("^q", "", min_cutoff))
             if (percentile < 0 || percentile > 100) {
                 stop("min_cutoff quantile must be between 0 and 100 (e.g., 'q5')")
@@ -193,12 +193,14 @@
         } else {
             stop("min_cutoff must be NULL, a numeric value, or a quantile string (e.g., 'q5')")
         }
-        result <- pmax(result, cutoff_value, na.rm = TRUE)
+        # Keep missing values missing (na.rm = TRUE would replace them with
+        # the cutoff)
+        result <- pmax(result, cutoff_value)
     }
     
     # Apply maximum cutoff
     if (!is.null(max_cutoff)) {
-        if (is.character(max_cutoff) && grepl("^q[0-9]+$", max_cutoff)) {
+        if (is.character(max_cutoff) && grepl("^q[0-9]+(\\.[0-9]+)?$", max_cutoff)) {
             percentile <- as.numeric(sub("^q", "", max_cutoff))
             if (percentile < 0 || percentile > 100) {
                 stop("max_cutoff quantile must be between 0 and 100 (e.g., 'q95')")
@@ -209,7 +211,7 @@
         } else {
             stop("max_cutoff must be NULL, a numeric value, or a quantile string (e.g., 'q95')")
         }
-        result <- pmin(result, cutoff_value, na.rm = TRUE)
+        result <- pmin(result, cutoff_value)
     }
     
     return(result)
